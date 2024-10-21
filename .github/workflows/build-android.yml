@@ -34,14 +34,14 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '11'  
-      - name: Install Android SDK
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 31
-          target: default
-          arch: x86_64
-          profile: Nexus6
-          emulator-options: "-no-window"
+      # - name: Install Android SDK
+      #   uses: reactivecircus/android-emulator-runner@v2
+      #   with:
+      #     api-level: 31
+      #     target: default
+      #     arch: x86_64
+      #     profile: Nexus6
+      #     emulator-options: "-no-window"
       
       - name: Build the APK
         run: |
