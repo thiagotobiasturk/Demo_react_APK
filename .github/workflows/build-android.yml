@@ -15,9 +15,7 @@ jobs:
       # Keystore y credenciales (almacenarlas en GitHub Secrets)
       KEYSTORE_PASSWORD: 123456
       KEY_PASSWORD: 123456
-      STORE_FILE: android/my-upload-key.keystore
-      STORE_PASSWORD: 123456
-
+      STORE_FILE: ./android/my-upload-key.keystore
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
