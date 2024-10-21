@@ -1,0 +1,55 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main  # Se ejecuta cuando haya un push en la rama principal
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      # Define variables de entorno necesarias para firmar tu APK
+      # Si usas signingConfig en build.gradle para la firma, puedes ponerlas aquí.
+      # Keystore y credenciales (almacenarlas en GitHub Secrets)
+      KEYSTORE_PASSWORD: 123456
+      KEY_PASSWORD: 123456
+      STORE_FILE: android/my-upload-key.keystore
+      STORE_PASSWORD: 123456
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22' 
+
+      - name: Install dependencies
+        run: npm install  
+
+      - name: Install JDK (Java Development Kit)
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'  
+      - name: Install Android SDK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 31
+          target: default
+          arch: x86_64
+          profile: Nexus6
+          emulator-options: "-no-window"
+      
+      - name: Build the APK
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-release.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
