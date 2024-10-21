@@ -11,11 +11,14 @@ jobs:
 
     env:
       # Define variables de entorno necesarias para firmar tu APK
-      # Si usas signingConfig en build.gradle para la firma, puedes ponerlas aquí.
-      # Keystore y credenciales (almacenarlas en GitHub Secrets)
       KEYSTORE_PASSWORD: 123456
       KEY_PASSWORD: 123456
       STORE_FILE: ./android/my-upload-key.keystore
+      MYAPP_UPLOAD_STORE_FILE: ./android/my-upload-key.keystore
+      MYAPP_UPLOAD_KEY_ALIAS: my-key-alias
+      MYAPP_UPLOAD_STORE_PASSWORD: 123456
+      MYAPP_UPLOAD_KEY_PASSWORD: 123456
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,26 +35,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '11'  
-      # - name: Install Android SDK
-      #   uses: reactivecircus/android-emulator-runner@v2
-      #   with:
-      #     api-level: 31
-      #     target: default
-      #     arch: x86_64
-      #     profile: Nexus6
-      #     emulator-options: "-no-window"
-      
+
       - name: Build the APK
         run: |
           cd android
           ./gradlew assembleRelease
-        env:
-          KEYSTORE_PASSWORD: 123456
-          KEY_PASSWORD: 123456
-          STORE_FILE: ./android/my-upload-key.keystore
-          JAVA_HOME_11.0.25_x64: /opt/hostedtoolcache/jdk/11.0.25/x64
-          JAVA_HOME: /opt/hostedtoolcache/jdk/11.0.25/x64
-          JAVA_HOME_11_0_25_X64: /opt/hostedtoolcache/jdk/11.0.25/x64
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
