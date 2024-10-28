@@ -1,95 +1,70 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
+  Image,
+  Button,
 } from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-react-native';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import { bundleResourceIO } from '@tensorflow/tfjs-react-native';
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [isTfReady, setTfReady] = useState(false);
+  const [model, setModel] = useState<any>(null);
+  const [detections, setDetections] = useState<string[]>([]);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  useEffect(() => {
+    // Inicializar TensorFlow y cargar el modelo
+    const initializeTensorFlow = async () => {
+      await tf.ready(); // Asegura que TensorFlow esté listo
+      setTfReady(true);
+      const loadedModel = await cocoSsd.load(); // Cargar modelo Coco SSD
+      setModel(loadedModel);
+    };
+    initializeTensorFlow();
+  }, []);
+
+  const handleDetectObjects = async () => {
+    if (!model) return;
+    const imageTensor = tf.browser.fromPixels({
+      width: 640,
+      height: 480,
+      data: new Uint8Array(640 * 480 * 3), // Debe reemplazarse con la imagen real
+    });
+    
+    const predictions = await model.detect(imageTensor);
+    setDetections(predictions.map((prediction: any) => prediction.class));
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
+        <View style={styles.content}>
+          <Text style={styles.title}>Demo: TensorFlow Coco SSD</Text>
+          {isTfReady ? (
+            <Text>TensorFlow está listo</Text>
+          ) : (
+            <Text>Cargando TensorFlow...</Text>
+          )}
+          <Button
+            title="Detectar objetos"
+            onPress={handleDetectObjects}
+            disabled={!model}
+          />
+          <View style={styles.detectionsContainer}>
+            {detections.map((item, index) => (
+              <Text key={index} style={styles.detectionText}>
+                {item}
+              </Text>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -97,21 +72,25 @@ function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  sectionTitle: {
+  content: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
-  sectionDescription: {
-    marginTop: 8,
+  detectionsContainer: {
+    marginTop: 20,
+  },
+  detectionText: {
     fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+    marginVertical: 5,
   },
 });
 
